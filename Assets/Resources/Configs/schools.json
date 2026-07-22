@@ -1,0 +1,34 @@
+{
+  "schools": [
+    {
+      "id": "confucian",
+      "name": "儒家",
+      "attackCoeff": 1.0,
+      "knowledgeCoeff": 1.0,
+      "killHeal": 5,
+      "dodgeNoCooldown": false,
+      "staminaRecoveryRate": 1.0,
+      "passiveDescription": "击杀治愈+5HP —— 杀越多越持久"
+    },
+    {
+      "id": "legalist",
+      "name": "法家",
+      "attackCoeff": 1.1,
+      "knowledgeCoeff": 1.15,
+      "killHeal": 0,
+      "dodgeNoCooldown": false,
+      "staminaRecoveryRate": 1.0,
+      "passiveDescription": "攻击力+10% —— 打得更狠但活得更短"
+    },
+    {
+      "id": "taoist",
+      "name": "道家",
+      "attackCoeff": 0.9,
+      "knowledgeCoeff": 0.95,
+      "killHeal": 0,
+      "dodgeNoCooldown": true,
+      "staminaRecoveryRate": 1.5,
+      "passiveDescription": "闪避无冷却+体力恢复+50% —— 循环不息"
+    }
+  ]
+}

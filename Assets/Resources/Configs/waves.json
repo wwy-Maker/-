@@ -1,0 +1,41 @@
+{
+  "waves": [
+    {
+      "waveNumber": 1, "enemyCount": 5, "spawnInterval": 0.8,
+      "ruPercent": 33, "faPercent": 33, "daoPercent": 34,
+      "isBossWave": false
+    },
+    {
+      "waveNumber": 2, "enemyCount": 7, "spawnInterval": 0.75,
+      "ruPercent": 33, "faPercent": 33, "daoPercent": 34,
+      "isBossWave": false
+    },
+    {
+      "waveNumber": 3, "enemyCount": 10, "spawnInterval": 0.7,
+      "ruPercent": 33, "faPercent": 33, "daoPercent": 34,
+      "isBossWave": false
+    },
+    {
+      "waveNumber": 4, "enemyCount": 12, "spawnInterval": 0.65,
+      "ruPercent": 33, "faPercent": 33, "daoPercent": 34,
+      "isBossWave": false
+    },
+    {
+      "waveNumber": 5, "enemyCount": 14, "spawnInterval": 0.6,
+      "ruPercent": 33, "faPercent": 33, "daoPercent": 34,
+      "isBossWave": false
+    },
+    {
+      "waveNumber": 6, "enemyCount": 0, "spawnInterval": 0,
+      "isBossWave": true, "bossHp": 300, "discipleCount": 5, "bossSchool": "player"
+    },
+    {
+      "waveNumber": 7, "enemyCount": 0, "spawnInterval": 0,
+      "isBossWave": true, "bossHp": 400, "discipleCount": 6, "bossSchool": "random"
+    },
+    {
+      "waveNumber": 8, "enemyCount": 0, "spawnInterval": 0,
+      "isBossWave": true, "bossHp": 500, "discipleCount": 8, "bossSchool": "remaining"
+    }
+  ]
+}

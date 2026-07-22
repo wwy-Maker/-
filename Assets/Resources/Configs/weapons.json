@@ -1,0 +1,37 @@
+{
+  "weapons": [
+    {
+      "id": "archery",
+      "name": "射艺",
+      "levels": [
+        { "level": 1, "damage": 15, "fireRate": 3.0, "upgradeCost": 0,   "description": "基础射击" },
+        { "level": 2, "damage": 18, "fireRate": 3.0, "upgradeCost": 50,  "description": "蓄力射击解锁", "chargeUnlocked": true, "pierceCount": 3 },
+        { "level": 3, "damage": 22, "fireRate": 3.6, "upgradeCost": 100, "description": "射速+20%" },
+        { "level": 4, "damage": 30, "fireRate": 3.6, "upgradeCost": 180, "description": "穿透数+1", "chargeUnlocked": true, "pierceCount": 4 },
+        { "level": 5, "damage": 45, "fireRate": 3.6, "upgradeCost": 300, "description": "终极：箭矢附带学派特效", "chargeUnlocked": true, "pierceCount": 4 }
+      ]
+    },
+    {
+      "id": "chariot",
+      "name": "御艺",
+      "levels": [
+        { "level": 1, "damage": 10, "fireRate": 1.0, "upgradeCost": 0,   "description": "基础冲刺攻击", "dashCooldown": 8.0, "trailWidth": 0.4, "dashDistance": 3.0 },
+        { "level": 2, "damage": 12, "fireRate": 1.0, "upgradeCost": 70,  "description": "冲刺冷却降至3s", "dashCooldown": 3.0, "trailWidth": 0.4, "dashDistance": 3.0 },
+        { "level": 3, "damage": 15, "fireRate": 1.0, "upgradeCost": 160, "description": "伤害带宽度+50%", "dashCooldown": 3.0, "trailWidth": 0.6, "dashDistance": 3.0 },
+        { "level": 4, "damage": 20, "fireRate": 1.0, "upgradeCost": 200, "description": "冲刺衔接无冷却", "dashCooldown": 0.5, "trailWidth": 0.6, "dashDistance": 3.0 },
+        { "level": 5, "damage": 30, "fireRate": 1.0, "upgradeCost": 200, "description": "终极：冲刺留3秒伤害区", "dashCooldown": 0.5, "trailWidth": 0.6, "dashDistance": 4.0 }
+      ]
+    },
+    {
+      "id": "ritual",
+      "name": "礼艺",
+      "levels": [
+        { "level": 1, "damage": 15, "fireRate": 1.0, "upgradeCost": 0,   "description": "礼击+屏障", "fanRange": 1.5, "barrierDuration": 5.0, "reflectDamage": 5,  "thornDamage": 5 },
+        { "level": 2, "damage": 17, "fireRate": 1.0, "upgradeCost": 40,  "description": "屏障持续+2s", "fanRange": 1.5, "barrierDuration": 7.0, "reflectDamage": 5,  "thornDamage": 5 },
+        { "level": 3, "damage": 20, "fireRate": 1.0, "upgradeCost": 100, "description": "礼击范围+50%", "fanRange": 2.25, "barrierDuration": 7.0, "reflectDamage": 5,  "thornDamage": 5 },
+        { "level": 4, "damage": 24, "fireRate": 1.0, "upgradeCost": 180, "description": "反弹伤害×2", "fanRange": 2.25, "barrierDuration": 7.0, "reflectDamage": 10, "thornDamage": 5 },
+        { "level": 5, "damage": 36, "fireRate": 1.0, "upgradeCost": 310, "description": "终极：反弹为扩散圈", "fanRange": 2.25, "barrierDuration": 7.0, "reflectDamage": 10, "thornDamage": 10 }
+      ]
+    }
+  ]
+}

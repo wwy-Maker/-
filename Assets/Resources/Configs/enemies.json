@@ -1,0 +1,46 @@
+{
+  "enemies": [
+    {
+      "id": "confucian_disciple",
+      "school": "confucian",
+      "hp": 30, "damage": 8, "moveSpeed": 3.0,
+      "shootInterval": 3.0, "projectileSpeed": 5.0,
+      "knowledgeDrop": 5, "behavior": "approach", "isElite": false
+    },
+    {
+      "id": "confucian_elite",
+      "school": "confucian",
+      "hp": 50, "damage": 12, "moveSpeed": 3.5,
+      "shootInterval": 2.5, "projectileSpeed": 6.0,
+      "knowledgeDrop": 25, "behavior": "approach", "isElite": true
+    },
+    {
+      "id": "legalist_disciple",
+      "school": "legalist",
+      "hp": 25, "damage": 10, "moveSpeed": 2.5,
+      "shootInterval": 2.5, "projectileSpeed": 7.0,
+      "knowledgeDrop": 5, "behavior": "lockdown", "isElite": false
+    },
+    {
+      "id": "legalist_elite",
+      "school": "legalist",
+      "hp": 40, "damage": 15, "moveSpeed": 3.0,
+      "shootInterval": 2.0, "projectileSpeed": 8.0,
+      "knowledgeDrop": 25, "behavior": "lockdown", "isElite": true
+    },
+    {
+      "id": "taoist_disciple",
+      "school": "taoist",
+      "hp": 35, "damage": 6, "moveSpeed": 4.0,
+      "shootInterval": 2.0, "projectileSpeed": 4.0,
+      "knowledgeDrop": 5, "behavior": "wander", "isElite": false
+    },
+    {
+      "id": "taoist_elite",
+      "school": "taoist",
+      "hp": 60, "damage": 10, "moveSpeed": 4.5,
+      "shootInterval": 1.5, "projectileSpeed": 5.0,
+      "knowledgeDrop": 25, "behavior": "wander", "isElite": true
+    }
+  ]
+}
