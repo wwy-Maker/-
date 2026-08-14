@@ -29,9 +29,6 @@ namespace HundredSchools.Flow
         [SerializeField, Range(0, 20)]  private int enemyHpGrowth = 5;
 
         [Header("精英参数")]
-        [SerializeField, Range(0.5f, 3f)] private float eliteHpMultiplier = 1.6f;
-        [SerializeField, Range(0.5f, 3f)] private float eliteSpeedBonus = 0.5f;
-        [SerializeField, Range(1f, 5f)]  private float eliteKnowledgeMultiplier = 5f;
         [SerializeField, Range(0.1f, 1f)] private float eliteChance = 0.15f;
 
         private WaveEntry[] _waves;
@@ -41,6 +38,7 @@ namespace HundredSchools.Flow
         private int _killedInWave;
         private int _totalInWave;
         private bool _allSpawned;
+        private readonly HashSet<ESchool> _encounteredBossSchools = new HashSet<ESchool>();
 
         public int WaveCount => _waves?.Length ?? 0;
         public int CurrentWaveIndex => _currentWaveIndex;
@@ -87,8 +85,16 @@ namespace HundredSchools.Flow
             _killedInWave = 0;
             _allSpawned = false;
 
+            // 新一局游戏，重置 Boss 出场追踪
+            if (index == 0)
+                _encounteredBossSchools.Clear();
+
             Core.GameManager.Instance.CurrentWave = wave.waveNumber;
             EventBus.TriggerWaveChanged(wave.waveNumber);
+
+            // 波间自然回血 15HP（GDD §5）
+            var player = FindObjectOfType<Player.PlayerMovement>();
+            if (player != null) player.Heal(15);
 
             if (wave.isBossWave)
             {
@@ -142,19 +148,18 @@ namespace HundredSchools.Flow
             Vector2 pos = GetRandomSpawnPosition();
             bool isElite = ShouldSpawnElite(wave);
 
-            // 精英属性
-            float hpMult = isElite ? eliteHpMultiplier : 1f;
-            float spdBonus = isElite ? eliteSpeedBonus : 0f;
-            float knowMult = isElite ? eliteKnowledgeMultiplier : 1f;
-
-            int hp = Mathf.RoundToInt((enemyBaseHp + _currentWaveIndex * enemyHpGrowth) * hpMult);
+            int hp = enemyBaseHp + _currentWaveIndex * enemyHpGrowth;
 
             GameObject obj = new GameObject($"Enemy_{school}_W{wave.waveNumber}");
             obj.transform.position = pos;
 
             Enemy.EnemyBase enemy = obj.AddComponent<Enemy.EnemyBase>();
-            enemy.Init(school, enemyMoveSpeed + spdBonus, hp, enemyScoreValue);
-            enemy.knowledgeValue = Mathf.RoundToInt(enemy.knowledgeValue * knowMult);
+            enemy.Init(school, enemyMoveSpeed, hp, enemyScoreValue);
+
+            if (isElite)
+            {
+                enemy.InitElite(school);
+            }
 
             Enemy.EnemyAI ai = obj.AddComponent<Enemy.EnemyAI>();
             if (_playerTransform != null) ai.SetTarget(_playerTransform);
@@ -215,22 +220,30 @@ namespace HundredSchools.Flow
             switch (rule)
             {
                 case "player":
-                    return GetPlayerSchool();
+                {
+                    // Boss1: 必须打本派宗师（GDD §8）
+                    ESchool s = GetPlayerSchool();
+                    _encounteredBossSchools.Add(s);
+                    return s;
+                }
                 case "random":
                 {
-                    // 随机但排除玩家学派（如果可能）
-                    ESchool playerSchool = GetPlayerSchool();
-                    var schools = new List<ESchool> { ESchool.Confucian, ESchool.Legalist, ESchool.Taoist };
-                    schools.Remove(playerSchool);
-                    return schools[Random.Range(0, schools.Count)];
+                    // Boss2: 随机，不与已出现的Boss重复
+                    var pool = new List<ESchool> { ESchool.Confucian, ESchool.Legalist, ESchool.Taoist };
+                    pool.RemoveAll(s => _encounteredBossSchools.Contains(s));
+                    if (pool.Count == 0) return ESchool.Taoist; // 兜底
+                    ESchool chosen = pool[Random.Range(0, pool.Count)];
+                    _encounteredBossSchools.Add(chosen);
+                    return chosen;
                 }
                 case "remaining":
                 {
-                    // 简化：随机选一个非玩家学派的
-                    ESchool playerSchool = GetPlayerSchool();
-                    var schools = new List<ESchool> { ESchool.Confucian, ESchool.Legalist, ESchool.Taoist };
-                    schools.Remove(playerSchool);
-                    return schools[Random.Range(0, Mathf.Min(schools.Count, 1))];
+                    // Boss3: 剩余未遇到的宗师
+                    var pool = new List<ESchool> { ESchool.Confucian, ESchool.Legalist, ESchool.Taoist };
+                    pool.RemoveAll(s => _encounteredBossSchools.Contains(s));
+                    ESchool last = pool.Count > 0 ? pool[0] : ESchool.Taoist;
+                    _encounteredBossSchools.Add(last);
+                    return last;
                 }
                 default:
                     return ESchool.Taoist;

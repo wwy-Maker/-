@@ -50,6 +50,14 @@ namespace HundredSchools.Combat
         private float _cooldownTimer;
         private Rigidbody2D _rb;
 
+        // ==================== 升级加成（公开字段，由 UpgradeManager 修改） ====================
+
+        /// <summary>伤害倍率（初始1.0，每次升级乘以1.15）</summary>
+        [HideInInspector] public float damageMultiplier = 1f;
+
+        /// <summary>攻速倍率（初始1.0，每次升级乘以1.10，作用于冷却时间）</summary>
+        [HideInInspector] public float attackSpeedMultiplier = 1f;
+
         // ==================== Unity 生命周期 ====================
 
         private void Awake()
@@ -80,14 +88,26 @@ namespace HundredSchools.Combat
                 if (_cooldownTimer <= 0f)
                 {
                     PerformDash();
-                    _cooldownTimer = cooldown;
-                    Debug.Log("[ChariotWeapon] 冲刺！冷却: " + cooldown + "s");
+                    _cooldownTimer = cooldown / attackSpeedMultiplier;
+                    Debug.Log("[ChariotWeapon] 冲刺！冷却: " + (cooldown / attackSpeedMultiplier) + "s");
                 }
                 else
                 {
                     Debug.Log("[ChariotWeapon] 冲刺冷却中，还需 " + _cooldownTimer.ToString("F2") + "s");
                 }
             }
+        }
+
+        /// <summary>应用 WeaponUpgradeEffect 到本武器组件。</summary>
+        public void ApplyUpgradeEffect(Core.WeaponUpgradeEffect e)
+        {
+            if (e.damage > 0) damage = e.damage;
+            if (e.dashCooldown > 0) cooldown = e.dashCooldown;
+            if (e.trailWidth > 0) trailWidth = e.trailWidth;
+            if (e.dashDistance > 0) dashDistance = e.dashDistance;
+            if (e.trailDamagePerSec > 0) damage = e.trailDamagePerSec;
+            damageMultiplier = 1f;
+            attackSpeedMultiplier = 1f;
         }
 
         /// <summary>切换武器时重置冷却</summary>
@@ -205,7 +225,7 @@ namespace HundredSchools.Combat
             // 附加伤害组件（GDD v1.9：注入学派弹幕行为）
             ESchool currentSchool = WeaponUtils.GetCurrentSchool(this);
             TrailDamage trailDmg = trailObj.AddComponent<TrailDamage>();
-            trailDmg.damage = damage;
+            trailDmg.damage = Mathf.RoundToInt(damage * damageMultiplier);
             trailDmg.school = currentSchool;
             trailDmg.behavior = GetBehaviorForSchool(currentSchool);
 

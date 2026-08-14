@@ -1,0 +1,52 @@
+{
+  "upgrades": [
+    {
+      "id": "dmg_up",
+      "name": "伤害+15%",
+      "desc": "提升15%武器伤害",
+      "cost": 3,
+      "type": "damage",
+      "value": 0.15
+    },
+    {
+      "id": "aspd_up",
+      "name": "射速+10%",
+      "desc": "提升10%攻击速度",
+      "cost": 3,
+      "type": "attackSpeed",
+      "value": 0.10
+    },
+    {
+      "id": "bullet_up",
+      "name": "弹幕数量+1",
+      "desc": "额外发射1枚弹幕（扇形散射）",
+      "cost": 5,
+      "type": "extraProjectile",
+      "value": 1
+    },
+    {
+      "id": "hp_up",
+      "name": "最大生命+20",
+      "desc": "提升20点最大生命",
+      "cost": 4,
+      "type": "maxHp",
+      "value": 20
+    },
+    {
+      "id": "spd_up",
+      "name": "移速+8%",
+      "desc": "提升8%移动速度",
+      "cost": 2,
+      "type": "moveSpeed",
+      "value": 0.08
+    },
+    {
+      "id": "sta_up",
+      "name": "体力恢复+15%",
+      "desc": "提升15%体力恢复速度",
+      "cost": 3,
+      "type": "staminaRecovery",
+      "value": 0.15
+    }
+  ]
+}

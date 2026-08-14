@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 namespace HundredSchools.Combat
@@ -28,27 +29,32 @@ namespace HundredSchools.Combat
         [SerializeField, Range(0.3f, 3f)]
         private float spawnOffset = 1f;
 
-        [Header("蓄力射击")]
-        [SerializeField, Range(0.2f, 2f)]
-        private float chargeThreshold = 0.5f;
+        // ==================== 三档蓄力常量（chargeUnlocked=true 时启用） ====================
 
-        [SerializeField, Range(1.5f, 5f)]
-        private float chargeDamageMultiplier = 2f;
-
-        [SerializeField, Range(1f, 3f)]
-        private float chargeSpeedMultiplier = 1.5f;
-
-        [Header("蓄力视觉")]
-        [SerializeField, Range(1f, 2f)]
-        private float chargeMaxScale = 1.3f;
+        private const float MaxChargeTime = 1.5f;
+        private const float ChargeVisualScale = 1.4f;
+        private const float Tier2Threshold = 0.3f;
+        private const float Tier3Threshold = 1.0f;
 
         // ==================== 运行时状态 ====================
 
         private float _chargeTime;
         private bool _isCharging;
+        private bool _chargeUnlocked;
         private float _cooldownTimer;
         private Vector3 _originalScale;
         private SpriteRenderer _playerSprite;
+
+        // ==================== 升级加成（公开字段，由 UpgradeManager 修改） ====================
+
+        /// <summary>伤害倍率（初始1.0，每次升级乘以1.15）</summary>
+        [HideInInspector] public float damageMultiplier = 1f;
+
+        /// <summary>攻速倍率（初始1.0，每次升级乘以1.10）</summary>
+        [HideInInspector] public float attackSpeedMultiplier = 1f;
+
+        /// <summary>额外弹幕数（扇形散射，间隔10度）</summary>
+        [HideInInspector] public int extraProjectiles = 0;
 
         // ==================== Unity 生命周期 ====================
 
@@ -60,44 +66,59 @@ namespace HundredSchools.Combat
 
         // ==================== 公开接口 ====================
 
-        /// <summary>
-        /// 每帧由 PlayerCombat 调用。处理射艺的蓄力 → 射击状态机。
-        /// </summary>
         public void HandleInput()
         {
             if (_cooldownTimer > 0f)
                 _cooldownTimer -= Time.deltaTime;
 
-            // 左键按下：开始蓄力
+            if (!_chargeUnlocked)
+            {
+                if (Input.GetMouseButtonDown(0) && _cooldownTimer <= 0f)
+                    FireNormalShot();
+                return;
+            }
+
+            // ── 三档蓄力模式 ──
             if (Input.GetMouseButtonDown(0))
             {
                 _isCharging = true;
                 _chargeTime = 0f;
             }
 
-            // 按住中：蓄力 + 视觉膨胀
             if (Input.GetMouseButton(0) && _isCharging)
             {
-                _chargeTime += Time.deltaTime;
-                float t = Mathf.Clamp01(_chargeTime / chargeThreshold);
-                transform.localScale = _originalScale * Mathf.Lerp(1f, chargeMaxScale, t);
+                _chargeTime = Mathf.Min(_chargeTime + Time.deltaTime, MaxChargeTime);
+                float t = Mathf.Clamp01(_chargeTime / MaxChargeTime);
+                transform.localScale = _originalScale * Mathf.Lerp(1f, ChargeVisualScale, t);
             }
 
-            // 松开左键：判定射击类型
             if (Input.GetMouseButtonUp(0) && _isCharging)
             {
                 _isCharging = false;
                 transform.localScale = _originalScale;
 
-                if (_cooldownTimer > 0f) return;
+                if (_cooldownTimer > 0f) { _chargeTime = 0f; return; }
 
-                if (_chargeTime >= chargeThreshold)
-                    FireChargedShot();
-                else
+                if (_chargeTime < Tier2Threshold)
                     FireNormalShot();
+                else if (_chargeTime < Tier3Threshold)
+                    FireMediumChargedShot();
+                else
+                    FireFullChargedShot();
 
                 _chargeTime = 0f;
             }
+        }
+
+        /// <summary>应用 WeaponUpgradeEffect 到本武器组件。</summary>
+        public void ApplyUpgradeEffect(Core.WeaponUpgradeEffect e)
+        {
+            if (e.damage > 0) damage = e.damage;
+            if (e.fireRate > 0) cooldown = 1f / e.fireRate;
+            extraProjectiles = e.extraProjectiles;
+            damageMultiplier = 1f;
+            attackSpeedMultiplier = 1f;
+            _chargeUnlocked = e.chargeUnlocked;
         }
 
         /// <summary>切换武器时重置状态，防止跨武器状态污染</summary>
@@ -115,39 +136,103 @@ namespace HundredSchools.Combat
         {
             Vector3 mouseWorld = WeaponUtils.GetMouseWorldPosition();
             Vector3 playerPos = transform.position;
-
             if (Vector3.Distance(mouseWorld, playerPos) < 0.1f) return;
 
             Vector3 direction = (mouseWorld - playerPos).normalized;
-            GameObject bullet = CreateBullet(direction, 1f);
-            ProjectileBase projectile = bullet.GetComponent<ProjectileBase>();
-
             ESchool currentSchool = WeaponUtils.GetCurrentSchool(this);
-            projectile.Init(direction, bulletSpeed, damage, currentSchool);
-            ApplyBulletBehavior(projectile, currentSchool);
-            projectile.SetOwner(gameObject);
-            _cooldownTimer = cooldown;
+            int finalDamage = Mathf.RoundToInt(damage * damageMultiplier);
+
+            int totalBullets = 1 + extraProjectiles;
+            for (int i = 0; i < totalBullets; i++)
+            {
+                float angleOffset = GetFanAngle(i);
+                Vector3 dir = Quaternion.Euler(0, 0, angleOffset) * direction;
+                FireSingleBullet(dir, 1f, finalDamage, bulletSpeed, currentSchool);
+            }
+
+            _cooldownTimer = cooldown / attackSpeedMultiplier;
         }
 
-        private void FireChargedShot()
+        private void FireMediumChargedShot()
+        {
+            FireChargedBullet(1.8f, 1.3f, 1.2f, 0);
+        }
+
+        private void FireFullChargedShot()
+        {
+            FireChargedBullet(3.0f, 1.6f, 1.5f, 1);
+            StartCoroutine(ScreenShake());
+        }
+
+        /// <summary>发射蓄力弹幕。pierceCount=0 保持学派行为，>0 强制穿透。</summary>
+        private void FireChargedBullet(float dmgMult, float spdMult, float scaleMult, int extraPierce)
         {
             Vector3 mouseWorld = WeaponUtils.GetMouseWorldPosition();
             Vector3 playerPos = transform.position;
-
             if (Vector3.Distance(mouseWorld, playerPos) < 0.1f) return;
 
             Vector3 direction = (mouseWorld - playerPos).normalized;
-            GameObject bullet = CreateBullet(direction, 1.5f);
-            ProjectileBase projectile = bullet.GetComponent<ProjectileBase>();
-
-            int chargedDmg = Mathf.RoundToInt(damage * chargeDamageMultiplier);
             ESchool currentSchool = WeaponUtils.GetCurrentSchool(this);
-            projectile.Init(direction, bulletSpeed * chargeSpeedMultiplier, chargedDmg, currentSchool);
-            ApplyBulletBehavior(projectile, currentSchool);
-            projectile.MarkAsCharged();
-            projectile.SetOwner(gameObject);
+            int finalDamage = Mathf.RoundToInt(damage * dmgMult * damageMultiplier);
+            float finalSpeed = bulletSpeed * spdMult;
 
-            _cooldownTimer = cooldown;
+            int totalBullets = 1 + extraProjectiles;
+            for (int i = 0; i < totalBullets; i++)
+            {
+                float angleOffset = GetFanAngle(i);
+                Vector3 dir = Quaternion.Euler(0, 0, angleOffset) * direction;
+                var proj = FireSingleBullet(dir, scaleMult, finalDamage, finalSpeed, currentSchool);
+                if (extraPierce > 0)
+                {
+                    proj.behavior = EBulletBehavior.Pierce;
+                    proj.pierceCount = extraPierce;
+                }
+            }
+
+            _cooldownTimer = cooldown / attackSpeedMultiplier;
+        }
+
+        private System.Collections.IEnumerator ScreenShake()
+        {
+            var cam = Camera.main;
+            if (cam == null) yield break;
+
+            Vector3 origin = cam.transform.position;
+            float duration = 0.1f;
+            float intensity = 0.12f;
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float decay = 1f - elapsed / duration;
+                float x = Random.Range(-1f, 1f) * intensity * decay;
+                float y = Random.Range(-1f, 1f) * intensity * decay;
+                cam.transform.position = origin + new Vector3(x, y, 0);
+                yield return null;
+            }
+
+            cam.transform.position = origin;
+        }
+
+        /// <summary>扇形散射角度计算。主弹幕0°，额外弹幕交替±10°、±20°……</summary>
+        private float GetFanAngle(int index)
+        {
+            if (index == 0) return 0f;
+            int step = (index + 1) / 2;
+            float sign = (index % 2 == 1) ? 1f : -1f;
+            return sign * step * 10f;
+        }
+
+        /// <summary>发射单发子弹，返回 ProjectileBase 供调用方进一步配置。</summary>
+        private ProjectileBase FireSingleBullet(Vector3 dir, float visualScale, int dmg, float speed, ESchool school)
+        {
+            GameObject bullet = CreateBullet(dir, visualScale);
+            ProjectileBase projectile = bullet.GetComponent<ProjectileBase>();
+            projectile.Init(dir, speed, dmg, school);
+            ApplyBulletBehavior(projectile, school);
+            projectile.SetOwner(gameObject);
+            return projectile;
         }
 
         /// <summary>

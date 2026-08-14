@@ -4,28 +4,55 @@ using UnityEngine;
 
 namespace HundredSchools.Core
 {
-    // ==================== 配置数据类（S06：C#强类型绑定） ====================
+    // ==================== P0-2: 武器升级路径数据类 ====================
 
+    /// <summary>单条升级效果（完整快照，含所有武器的全部字段）</summary>
     [Serializable]
-    public class WeaponLevelConfig
+    public class WeaponUpgradeEffect
     {
-        public int level;
+        // 通用
         public int damage;
         public float fireRate;
-        public int upgradeCost;
-        public string description;
-        // 射艺专用
+        // 射艺
         public bool chargeUnlocked;
         public int pierceCount;
-        // 御艺专用
+        public int extraProjectiles;
+        // 御艺
         public float dashCooldown;
         public float trailWidth;
         public float dashDistance;
-        // 礼艺专用
+        public int trailDamagePerSec;
+        public bool trailDamageZone;
+        // 礼艺
         public float fanRange;
         public float barrierDuration;
         public int reflectDamage;
         public int thornDamage;
+        public bool barrierMovable;
+        public bool reflectIsCircle;
+    }
+
+    /// <summary>一个分支选项</summary>
+    [Serializable]
+    public class WeaponUpgradeBranch
+    {
+        public string id;
+        public string name;
+        public string description;
+        public WeaponUpgradeEffect effects;
+    }
+
+    /// <summary>一个等级配置 —— 可能是线性（effects）或分支（branches[]）</summary>
+    [Serializable]
+    public class WeaponLevelConfig
+    {
+        public int level;
+        public int upgradeCost;
+        public string description;
+        public WeaponUpgradeEffect effects;
+        public WeaponUpgradeBranch[] branches;
+
+        public bool IsBranch => branches != null && branches.Length >= 2;
     }
 
     [Serializable]
@@ -92,6 +119,20 @@ namespace HundredSchools.Core
     [Serializable]
     public class SchoolConfigList { public SchoolConfig[] schools; }
 
+    [Serializable]
+    public class UpgradeConfig
+    {
+        public string id;
+        public string name;
+        public string desc;
+        public int cost;
+        public string type;   // "damage"|"attackSpeed"|"extraProjectile"|"maxHp"|"moveSpeed"|"staminaRecovery"
+        public float value;
+    }
+
+    [Serializable]
+    public class UpgradeConfigList { public UpgradeConfig[] upgrades; }
+
     // ==================== ConfigLoader（S05） ====================
 
     /// <summary>
@@ -108,6 +149,7 @@ namespace HundredSchools.Core
         private static Dictionary<string, EnemyConfig> _enemies;
         private static WaveEntry[] _waves;
         private static Dictionary<string, SchoolConfig> _schools;
+        private static UpgradeConfig[] _upgrades;
         private static bool _initialized;
 
         public static bool IsInitialized => _initialized;
@@ -139,8 +181,12 @@ namespace HundredSchools.Core
             if (schoolList?.schools != null)
                 foreach (var s in schoolList.schools) _schools[s.id] = s;
 
+            // 升级词条配置
+            _upgrades = LoadConfig<UpgradeConfigList>("Configs/upgrades")?.upgrades
+                ?? System.Array.Empty<UpgradeConfig>();
+
             _initialized = true;
-            Debug.Log($"[ConfigLoader] 初始化完成：{_weapons.Count}武器, {_enemies.Count}敌人, {_waves.Length}波次, {_schools.Count}学派");
+            Debug.Log($"[ConfigLoader] 初始化完成：{_weapons.Count}武器, {_enemies.Count}敌人, {_waves.Length}波次, {_schools.Count}学派, {_upgrades.Length}升级词条");
         }
 
         private static T LoadConfig<T>(string path) where T : class
@@ -203,6 +249,9 @@ namespace HundredSchools.Core
             _ => null
         };
 
+        /// <summary>获取全部升级词条。</summary>
+        public static UpgradeConfig[] GetAllUpgrades() => _upgrades;
+
         // === 配置校验（S05 ConfigValidator） ===
 
         /// <summary>校验已加载配置的完整性。</summary>
@@ -214,6 +263,7 @@ namespace HundredSchools.Core
             if (_enemies.Count == 0) errors.Add("enemies.json 为空或加载失败");
             if (_waves.Length == 0) errors.Add("waves.json 为空或加载失败");
             if (_schools.Count == 0) errors.Add("schools.json 为空或加载失败");
+            if (_upgrades.Length == 0) errors.Add("upgrades.json 为空或加载失败");
 
             foreach (var w in _weapons.Values)
             {

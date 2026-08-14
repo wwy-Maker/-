@@ -29,6 +29,11 @@ namespace HundredSchools.Enemy
         /// <summary>学识掉落值（GDD：普通5×学派系数，精英25×系数，Boss 200×系数+100）</summary>
         public int knowledgeValue = 5;
 
+        /// <summary>是否为精英变体</summary>
+        public bool IsElite;
+        /// <summary>精英特殊行为学派</summary>
+        public ESchool EliteAffinity;
+
         protected int currentHp;
         public bool IsDead => currentHp <= 0;
 
@@ -37,6 +42,8 @@ namespace HundredSchools.Enemy
         protected Collider2D col;
         protected Color originalColor;
         protected Coroutine flashCoroutine;
+        private bool _isFrozen;
+        private Coroutine _freezeCoroutine;
 
         private Flow.WaveSpawner _waveSpawner;
 
@@ -114,7 +121,15 @@ namespace HundredSchools.Enemy
 
         public virtual void TakeDamage(int damage)
         {
-            if (IsDead || damage <= 0) return;
+            if (IsDead || damage <= 0 || _isFrozen) return;
+
+            // 道系精英：30% 概率闪避
+            if (IsElite && EliteAffinity == ESchool.Taoist && Random.value < 0.3f)
+            {
+                StartCoroutine(DodgeFlash());
+                return;
+            }
+
             currentHp -= damage;
             if (currentHp <= 0) { currentHp = 0; Die(); }
             else
@@ -137,12 +152,17 @@ namespace HundredSchools.Enemy
 
         protected virtual void Die()
         {
-            EventBus.TriggerEnemyKilled(transform.position, knowledgeValue);
+            int finalKnowledge = knowledgeValue;
+            var gm = GameManager.Instance;
+            if (gm != null)
+                finalKnowledge = Mathf.RoundToInt(finalKnowledge * gm.GetDifficultyConfig().knowledgeMult);
+            EventBus.TriggerEnemyKilled(transform.position, finalKnowledge);
             Destroy(gameObject);
         }
 
         public virtual void MoveTowards(Vector3 targetPosition)
         {
+            if (_isFrozen) return;
             Vector3 dir = (targetPosition - transform.position).normalized;
             rb.MovePosition(transform.position + dir * moveSpeed * Time.fixedDeltaTime);
         }
@@ -173,7 +193,7 @@ namespace HundredSchools.Enemy
         /// </summary>
         public void TryShoot(Transform playerTarget)
         {
-            if (IsDead) return;
+            if (IsDead || _isFrozen) return;
             if (playerTarget == null) return;
 
             float dist = Vector3.Distance(transform.position, playerTarget.position);
@@ -206,6 +226,7 @@ namespace HundredSchools.Enemy
             Combat.ProjectileBase proj = bulletObj.GetComponent<Combat.ProjectileBase>();
             proj.behavior = Combat.EBulletBehavior.Splash;
             proj.damageMultiplier = 0.8f;
+            if (IsElite) proj.IsSplash = true;
 
             Debug.Log("[EnemyBase] 儒家弹幕发射！（圆形·金色·溅射）");
         }
@@ -225,6 +246,7 @@ namespace HundredSchools.Enemy
             proj.behavior = Combat.EBulletBehavior.Pierce;
             proj.pierceCount = 1;
             proj.damageMultiplier = 1.2f;
+            if (IsElite) proj.IsTracking = true;
 
             Debug.Log("[EnemyBase] 法家弹幕发射！（锐三角·黑色·穿透）");
         }
@@ -265,6 +287,7 @@ namespace HundredSchools.Enemy
             Combat.ProjectileBase proj = bulletObj.AddComponent<Combat.ProjectileBase>();
             proj.Init(direction, projectileSpeed, projectileDamage, school);
             proj.SetOwner(gameObject);
+            proj.IsEnemyProjectile = true;
 
             BoxCollider2D col = bulletObj.AddComponent<BoxCollider2D>();
             col.isTrigger = true;
@@ -285,15 +308,75 @@ namespace HundredSchools.Enemy
             maxHp = hp;
             currentHp = hp;
             scoreValue = score;
-            // 学识掉落 = 基础值 × 学派系数
+
             var schoolCfg = ConfigLoader.GetSchoolConfig(s);
             float coeff = schoolCfg?.knowledgeCoeff ?? 1.0f;
             knowledgeValue = Mathf.RoundToInt(5 * coeff);
-            ApplySchoolVisual(); // 刷新外形以匹配新学派
+
+            // 难度乘数（作用于基础值）
+            var gm = GameManager.Instance;
+            if (gm != null)
+            {
+                var dc = gm.GetDifficultyConfig();
+                maxHp = Mathf.RoundToInt(maxHp * dc.hpMult);
+                currentHp = maxHp;
+                moveSpeed *= dc.spdMult;
+                shootInterval /= dc.fireRateMult;
+            }
+
+            ApplySchoolVisual();
             if (_waveSpawner == null)
                 _waveSpawner = FindObjectOfType<Flow.WaveSpawner>();
         }
 
+        public void Freeze(float duration)
+        {
+            if (_freezeCoroutine != null) StopCoroutine(_freezeCoroutine);
+            _freezeCoroutine = StartCoroutine(FreezeCoroutine(duration));
+        }
+
+        private System.Collections.IEnumerator FreezeCoroutine(float duration)
+        {
+            _isFrozen = true;
+            var sr = GetComponent<SpriteRenderer>();
+            Color frozen = sr != null ? sr.color : Color.white;
+            if (sr != null) sr.color = new Color(0.3f, 0.7f, 1f, 1f); // 青蓝色
+            yield return new WaitForSeconds(duration);
+            _isFrozen = false;
+            if (sr != null) sr.color = frozen;
+        }
+
+        public void InitElite(ESchool eliteSchool)
+        {
+            IsElite = true;
+            EliteAffinity = eliteSchool;
+            maxHp *= 2;
+            currentHp = maxHp;
+            transform.localScale *= 1.6f;
+            knowledgeValue *= 2;
+
+            // 白色光环子物体 —— 一眼认精英
+            var ringObj = new GameObject("EliteRing");
+            ringObj.transform.SetParent(transform, false);
+            ringObj.transform.localPosition = Vector3.zero;
+            ringObj.transform.localScale = Vector3.one * 1.1f;
+            var ringSr = ringObj.AddComponent<SpriteRenderer>();
+            ringSr.sprite = Combat.WeaponUtils.GetOrCreateRingSprite();
+            ringSr.color = Color.white;
+            ringSr.sortingOrder = spriteRenderer != null ? spriteRenderer.sortingOrder - 1 : 0;
+        }
+
+        private System.Collections.IEnumerator DodgeFlash()
+        {
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = Color.white;
+                yield return new WaitForSeconds(0.1f);
+                spriteRenderer.color = originalColor;
+            }
+        }
+
+        public bool IsFrozen => _isFrozen;
         public ESchool School => school;
         public int CurrentHp => currentHp;
         public int MaxHp => maxHp;

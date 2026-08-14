@@ -4,33 +4,258 @@
       "id": "archery",
       "name": "射艺",
       "levels": [
-        { "level": 1, "damage": 15, "fireRate": 3.0, "upgradeCost": 0,   "description": "基础射击" },
-        { "level": 2, "damage": 18, "fireRate": 3.0, "upgradeCost": 50,  "description": "蓄力射击解锁", "chargeUnlocked": true, "pierceCount": 3 },
-        { "level": 3, "damage": 22, "fireRate": 3.6, "upgradeCost": 100, "description": "射速+20%" },
-        { "level": 4, "damage": 30, "fireRate": 3.6, "upgradeCost": 180, "description": "穿透数+1", "chargeUnlocked": true, "pierceCount": 4 },
-        { "level": 5, "damage": 45, "fireRate": 3.6, "upgradeCost": 300, "description": "终极：箭矢附带学派特效", "chargeUnlocked": true, "pierceCount": 4 }
+        {
+          "level": 1, "upgradeCost": 0,
+          "description": "基础射击",
+          "effects": {
+            "damage": 15, "fireRate": 3.0,
+            "chargeUnlocked": false, "pierceCount": 0, "extraProjectiles": 0,
+            "dashCooldown": 0, "trailWidth": 0, "dashDistance": 0, "trailDamagePerSec": 0, "trailDamageZone": false,
+            "fanRange": 0, "barrierDuration": 0, "reflectDamage": 0, "thornDamage": 0, "barrierMovable": false, "reflectIsCircle": false
+          }
+        },
+        {
+          "level": 2, "upgradeCost": 0,
+          "description": "蓄力射击解锁",
+          "effects": {
+            "damage": 18, "fireRate": 3.0,
+            "chargeUnlocked": true, "pierceCount": 3, "extraProjectiles": 0,
+            "dashCooldown": 0, "trailWidth": 0, "dashDistance": 0, "trailDamagePerSec": 0, "trailDamageZone": false,
+            "fanRange": 0, "barrierDuration": 0, "reflectDamage": 0, "thornDamage": 0, "barrierMovable": false, "reflectIsCircle": false
+          }
+        },
+        {
+          "level": 3, "upgradeCost": 0,
+          "branches": [
+            {
+              "id": "archery_3a", "name": "射速提升",
+              "description": "射速+20%（3.0→3.6发/秒）",
+              "effects": {
+                "damage": 22, "fireRate": 3.6,
+                "chargeUnlocked": true, "pierceCount": 3, "extraProjectiles": 0,
+                "dashCooldown": 0, "trailWidth": 0, "dashDistance": 0, "trailDamagePerSec": 0, "trailDamageZone": false,
+                "fanRange": 0, "barrierDuration": 0, "reflectDamage": 0, "thornDamage": 0, "barrierMovable": false, "reflectIsCircle": false
+              }
+            },
+            {
+              "id": "archery_3b", "name": "散射强化",
+              "description": "箭矢数量+1（扇形散射）",
+              "effects": {
+                "damage": 22, "fireRate": 3.0,
+                "chargeUnlocked": true, "pierceCount": 3, "extraProjectiles": 1,
+                "dashCooldown": 0, "trailWidth": 0, "dashDistance": 0, "trailDamagePerSec": 0, "trailDamageZone": false,
+                "fanRange": 0, "barrierDuration": 0, "reflectDamage": 0, "thornDamage": 0, "barrierMovable": false, "reflectIsCircle": false
+              }
+            }
+          ]
+        },
+        {
+          "level": 4, "upgradeCost": 0,
+          "branches": [
+            {
+              "id": "archery_4a", "name": "穿透强化",
+              "description": "穿透数+1（累计穿透4个敌人）",
+              "effects": {
+                "damage": 30, "fireRate": 3.6,
+                "chargeUnlocked": true, "pierceCount": 4, "extraProjectiles": 0,
+                "dashCooldown": 0, "trailWidth": 0, "dashDistance": 0, "trailDamagePerSec": 0, "trailDamageZone": false,
+                "fanRange": 0, "barrierDuration": 0, "reflectDamage": 0, "thornDamage": 0, "barrierMovable": false, "reflectIsCircle": false
+              }
+            },
+            {
+              "id": "archery_4b", "name": "蓄力爆发",
+              "description": "蓄力伤害×1.5（蓄力基础伤33→扩散到40+）",
+              "effects": {
+                "damage": 33, "fireRate": 3.6,
+                "chargeUnlocked": true, "pierceCount": 3, "extraProjectiles": 0,
+                "dashCooldown": 0, "trailWidth": 0, "dashDistance": 0, "trailDamagePerSec": 0, "trailDamageZone": false,
+                "fanRange": 0, "barrierDuration": 0, "reflectDamage": 0, "thornDamage": 0, "barrierMovable": false, "reflectIsCircle": false
+              }
+            }
+          ]
+        },
+        {
+          "level": 5, "upgradeCost": 0,
+          "description": "终极·诸子之矢（箭矢附带学派特效）",
+          "effects": {
+            "damage": 45, "fireRate": 3.6,
+            "chargeUnlocked": true, "pierceCount": 4, "extraProjectiles": 1,
+            "dashCooldown": 0, "trailWidth": 0, "dashDistance": 0, "trailDamagePerSec": 0, "trailDamageZone": false,
+            "fanRange": 0, "barrierDuration": 0, "reflectDamage": 0, "thornDamage": 0, "barrierMovable": false, "reflectIsCircle": false
+          }
+        }
       ]
     },
     {
       "id": "chariot",
       "name": "御艺",
       "levels": [
-        { "level": 1, "damage": 10, "fireRate": 1.0, "upgradeCost": 0,   "description": "基础冲刺攻击", "dashCooldown": 8.0, "trailWidth": 0.4, "dashDistance": 3.0 },
-        { "level": 2, "damage": 12, "fireRate": 1.0, "upgradeCost": 70,  "description": "冲刺冷却降至3s", "dashCooldown": 3.0, "trailWidth": 0.4, "dashDistance": 3.0 },
-        { "level": 3, "damage": 15, "fireRate": 1.0, "upgradeCost": 160, "description": "伤害带宽度+50%", "dashCooldown": 3.0, "trailWidth": 0.6, "dashDistance": 3.0 },
-        { "level": 4, "damage": 20, "fireRate": 1.0, "upgradeCost": 200, "description": "冲刺衔接无冷却", "dashCooldown": 0.5, "trailWidth": 0.6, "dashDistance": 3.0 },
-        { "level": 5, "damage": 30, "fireRate": 1.0, "upgradeCost": 200, "description": "终极：冲刺留3秒伤害区", "dashCooldown": 0.5, "trailWidth": 0.6, "dashDistance": 4.0 }
+        {
+          "level": 1, "upgradeCost": 0,
+          "description": "基础冲刺攻击",
+          "effects": {
+            "damage": 10, "fireRate": 0,
+            "chargeUnlocked": false, "pierceCount": 0, "extraProjectiles": 0,
+            "dashCooldown": 8.0, "trailWidth": 0.4, "dashDistance": 3.0, "trailDamagePerSec": 10, "trailDamageZone": false,
+            "fanRange": 0, "barrierDuration": 0, "reflectDamage": 0, "thornDamage": 0, "barrierMovable": false, "reflectIsCircle": false
+          }
+        },
+        {
+          "level": 2, "upgradeCost": 0,
+          "description": "冲刺冷却降至3s",
+          "effects": {
+            "damage": 12, "fireRate": 0,
+            "chargeUnlocked": false, "pierceCount": 0, "extraProjectiles": 0,
+            "dashCooldown": 3.0, "trailWidth": 0.4, "dashDistance": 3.0, "trailDamagePerSec": 12, "trailDamageZone": false,
+            "fanRange": 0, "barrierDuration": 0, "reflectDamage": 0, "thornDamage": 0, "barrierMovable": false, "reflectIsCircle": false
+          }
+        },
+        {
+          "level": 3, "upgradeCost": 0,
+          "branches": [
+            {
+              "id": "chariot_3a", "name": "伤害带加宽",
+              "description": "伤害带宽度+50%（0.4→0.6）",
+              "effects": {
+                "damage": 15, "fireRate": 0,
+                "chargeUnlocked": false, "pierceCount": 0, "extraProjectiles": 0,
+                "dashCooldown": 3.0, "trailWidth": 0.6, "dashDistance": 3.0, "trailDamagePerSec": 15, "trailDamageZone": false,
+                "fanRange": 0, "barrierDuration": 0, "reflectDamage": 0, "thornDamage": 0, "barrierMovable": false, "reflectIsCircle": false
+              }
+            },
+            {
+              "id": "chariot_3b", "name": "冲刺距离加长",
+              "description": "冲刺距离+50%（3.0→4.5）",
+              "effects": {
+                "damage": 15, "fireRate": 0,
+                "chargeUnlocked": false, "pierceCount": 0, "extraProjectiles": 0,
+                "dashCooldown": 3.0, "trailWidth": 0.4, "dashDistance": 4.5, "trailDamagePerSec": 15, "trailDamageZone": false,
+                "fanRange": 0, "barrierDuration": 0, "reflectDamage": 0, "thornDamage": 0, "barrierMovable": false, "reflectIsCircle": false
+              }
+            }
+          ]
+        },
+        {
+          "level": 4, "upgradeCost": 0,
+          "branches": [
+            {
+              "id": "chariot_4a", "name": "冲刺衔接",
+              "description": "连冲无冷却（随心所欲穿梭敌阵）",
+              "effects": {
+                "damage": 20, "fireRate": 0,
+                "chargeUnlocked": false, "pierceCount": 0, "extraProjectiles": 0,
+                "dashCooldown": 0.1, "trailWidth": 0.6, "dashDistance": 3.0, "trailDamagePerSec": 20, "trailDamageZone": false,
+                "fanRange": 0, "barrierDuration": 0, "reflectDamage": 0, "thornDamage": 0, "barrierMovable": false, "reflectIsCircle": false
+              }
+            },
+            {
+              "id": "chariot_4b", "name": "伤害×2",
+              "description": "冲刺伤害翻倍",
+              "effects": {
+                "damage": 30, "fireRate": 0,
+                "chargeUnlocked": false, "pierceCount": 0, "extraProjectiles": 0,
+                "dashCooldown": 3.0, "trailWidth": 0.6, "dashDistance": 3.0, "trailDamagePerSec": 30, "trailDamageZone": false,
+                "fanRange": 0, "barrierDuration": 0, "reflectDamage": 0, "thornDamage": 0, "barrierMovable": false, "reflectIsCircle": false
+              }
+            }
+          ]
+        },
+        {
+          "level": 5, "upgradeCost": 0,
+          "description": "终极·驰骋之痕（冲刺时留下持续3秒伤害区）",
+          "effects": {
+            "damage": 30, "fireRate": 0,
+            "chargeUnlocked": false, "pierceCount": 0, "extraProjectiles": 0,
+            "dashCooldown": 0.1, "trailWidth": 0.6, "dashDistance": 4.0, "trailDamagePerSec": 30, "trailDamageZone": true,
+            "fanRange": 0, "barrierDuration": 0, "reflectDamage": 0, "thornDamage": 0, "barrierMovable": false, "reflectIsCircle": false
+          }
+        }
       ]
     },
     {
       "id": "ritual",
       "name": "礼艺",
       "levels": [
-        { "level": 1, "damage": 15, "fireRate": 1.0, "upgradeCost": 0,   "description": "礼击+屏障", "fanRange": 1.5, "barrierDuration": 5.0, "reflectDamage": 5,  "thornDamage": 5 },
-        { "level": 2, "damage": 17, "fireRate": 1.0, "upgradeCost": 40,  "description": "屏障持续+2s", "fanRange": 1.5, "barrierDuration": 7.0, "reflectDamage": 5,  "thornDamage": 5 },
-        { "level": 3, "damage": 20, "fireRate": 1.0, "upgradeCost": 100, "description": "礼击范围+50%", "fanRange": 2.25, "barrierDuration": 7.0, "reflectDamage": 5,  "thornDamage": 5 },
-        { "level": 4, "damage": 24, "fireRate": 1.0, "upgradeCost": 180, "description": "反弹伤害×2", "fanRange": 2.25, "barrierDuration": 7.0, "reflectDamage": 10, "thornDamage": 5 },
-        { "level": 5, "damage": 36, "fireRate": 1.0, "upgradeCost": 310, "description": "终极：反弹为扩散圈", "fanRange": 2.25, "barrierDuration": 7.0, "reflectDamage": 10, "thornDamage": 10 }
+        {
+          "level": 1, "upgradeCost": 0,
+          "description": "礼击+屏障",
+          "effects": {
+            "damage": 15, "fireRate": 0,
+            "chargeUnlocked": false, "pierceCount": 0, "extraProjectiles": 0,
+            "dashCooldown": 0, "trailWidth": 0, "dashDistance": 0, "trailDamagePerSec": 0, "trailDamageZone": false,
+            "fanRange": 1.5, "barrierDuration": 5.0, "reflectDamage": 5, "thornDamage": 5, "barrierMovable": false, "reflectIsCircle": false
+          }
+        },
+        {
+          "level": 2, "upgradeCost": 0,
+          "description": "屏障持续+2s（5s→7s）",
+          "effects": {
+            "damage": 17, "fireRate": 0,
+            "chargeUnlocked": false, "pierceCount": 0, "extraProjectiles": 0,
+            "dashCooldown": 0, "trailWidth": 0, "dashDistance": 0, "trailDamagePerSec": 0, "trailDamageZone": false,
+            "fanRange": 1.5, "barrierDuration": 7.0, "reflectDamage": 5, "thornDamage": 5, "barrierMovable": false, "reflectIsCircle": false
+          }
+        },
+        {
+          "level": 3, "upgradeCost": 0,
+          "branches": [
+            {
+              "id": "ritual_3a", "name": "礼击范围+50%",
+              "description": "扇形半径1.5→2.25",
+              "effects": {
+                "damage": 20, "fireRate": 0,
+                "chargeUnlocked": false, "pierceCount": 0, "extraProjectiles": 0,
+                "dashCooldown": 0, "trailWidth": 0, "dashDistance": 0, "trailDamagePerSec": 0, "trailDamageZone": false,
+                "fanRange": 2.25, "barrierDuration": 7.0, "reflectDamage": 5, "thornDamage": 5, "barrierMovable": false, "reflectIsCircle": false
+              }
+            },
+            {
+              "id": "ritual_3b", "name": "礼刺伤害×2",
+              "description": "屏障内礼刺5→10",
+              "effects": {
+                "damage": 20, "fireRate": 0,
+                "chargeUnlocked": false, "pierceCount": 0, "extraProjectiles": 0,
+                "dashCooldown": 0, "trailWidth": 0, "dashDistance": 0, "trailDamagePerSec": 0, "trailDamageZone": false,
+                "fanRange": 1.5, "barrierDuration": 7.0, "reflectDamage": 5, "thornDamage": 10, "barrierMovable": false, "reflectIsCircle": false
+              }
+            }
+          ]
+        },
+        {
+          "level": 4, "upgradeCost": 0,
+          "branches": [
+            {
+              "id": "ritual_4a", "name": "反弹伤害×2",
+              "description": "反弹保底5→10",
+              "effects": {
+                "damage": 24, "fireRate": 0,
+                "chargeUnlocked": false, "pierceCount": 0, "extraProjectiles": 0,
+                "dashCooldown": 0, "trailWidth": 0, "dashDistance": 0, "trailDamagePerSec": 0, "trailDamageZone": false,
+                "fanRange": 2.25, "barrierDuration": 7.0, "reflectDamage": 10, "thornDamage": 5, "barrierMovable": false, "reflectIsCircle": false
+              }
+            },
+            {
+              "id": "ritual_4b", "name": "屏障可移动",
+              "description": "屏障跟随玩家移动",
+              "effects": {
+                "damage": 24, "fireRate": 0,
+                "chargeUnlocked": false, "pierceCount": 0, "extraProjectiles": 0,
+                "dashCooldown": 0, "trailWidth": 0, "dashDistance": 0, "trailDamagePerSec": 0, "trailDamageZone": false,
+                "fanRange": 2.25, "barrierDuration": 7.0, "reflectDamage": 5, "thornDamage": 5, "barrierMovable": true, "reflectIsCircle": false
+              }
+            }
+          ]
+        },
+        {
+          "level": 5, "upgradeCost": 0,
+          "description": "终极·礼化天下（反弹为扩散圈）",
+          "effects": {
+            "damage": 36, "fireRate": 0,
+            "chargeUnlocked": false, "pierceCount": 0, "extraProjectiles": 0,
+            "dashCooldown": 0, "trailWidth": 0, "dashDistance": 0, "trailDamagePerSec": 0, "trailDamageZone": false,
+            "fanRange": 2.25, "barrierDuration": 7.0, "reflectDamage": 10, "thornDamage": 10, "barrierMovable": true, "reflectIsCircle": true
+          }
+        }
       ]
     }
   ]

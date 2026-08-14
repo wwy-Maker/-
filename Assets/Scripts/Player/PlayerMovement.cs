@@ -104,11 +104,13 @@ namespace HundredSchools.Player
 
         /// <summary>玩家是否已死亡</summary>
         public bool IsDead => currentHp <= 0f;
+        private bool _isDying;
 
         // ==================== 组件引用 ====================
 
         private Rigidbody2D _rb;
         private SpriteRenderer _spriteRenderer;
+        private Color originalColor;
 
         // ==================== Unity 生命周期 ====================
 
@@ -147,23 +149,25 @@ namespace HundredSchools.Player
             {
                 _spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
             }
+            originalColor = _spriteRenderer.color;
         }
 
         private void Start()
         {
+            // 难度影响初始HP
+            var gm = GameManager.Instance;
+            if (gm != null)
+            {
+                var dc = gm.GetDifficultyConfig();
+                maxHp = dc.playerInitialHp;
+            }
+
             // 初始化属性
             currentHp = maxHp;
             currentStamina = maxStamina;
 
             // GDD：从 schools.json 读取学派被动
-            var schoolCfg = ConfigLoader.GetSchoolConfig(currentSchool);
-            if (schoolCfg != null)
-            {
-                dodgeCooldown = schoolCfg.dodgeNoCooldown ? 0f : 8f;
-                attackCoeff = schoolCfg.attackCoeff;
-                _staminaRecoveryRate = schoolCfg.staminaRecoveryRate;
-                _killHeal = schoolCfg.killHeal;
-            }
+            ApplySchoolPassives();
 
             // 根据学派设置 Sprite 颜色
             ApplySchoolColor();
@@ -181,6 +185,8 @@ namespace HundredSchools.Player
 
         private void Update()
         {
+            if (_isDying || IsDead) return;
+
             // 暂停 / 游戏结束时不处理输入
             if (GameManager.Instance != null)
             {
@@ -202,6 +208,8 @@ namespace HundredSchools.Player
 
         private void FixedUpdate()
         {
+            if (_isDying || IsDead) return;
+
             // 暂停 / 游戏结束时不移动
             if (GameManager.Instance != null)
             {
@@ -289,7 +297,7 @@ namespace HundredSchools.Player
         /// <param name="damage">伤害值</param>
         public void TakeDamage(float damage)
         {
-            if (IsDead) return;
+            if (IsDead || _isDying) return;
             if (damage <= 0f) return;
 
             currentHp = Mathf.Max(0f, currentHp - damage);
@@ -297,7 +305,13 @@ namespace HundredSchools.Player
 
             if (currentHp <= 0f)
             {
-                GameManager.Instance?.OnPlayerDied();
+                _isDying = true;
+                _rb.velocity = Vector2.zero;
+                var col = GetComponent<Collider2D>();
+                if (col != null) col.enabled = false;
+                var combat = GetComponent<PlayerCombat>();
+                if (combat != null) combat.enabled = false;
+                StartCoroutine(DeathSequence());
             }
         }
 
@@ -313,6 +327,19 @@ namespace HundredSchools.Player
             currentHp = Mathf.Min(maxHp, currentHp + amount);
             EventBus.TriggerPlayerHealed(amount);
             EventBus.TriggerPlayerDamaged(currentHp, maxHp);
+        }
+
+        private System.Collections.IEnumerator DeathSequence()
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                _spriteRenderer.color = Color.red;
+                yield return new WaitForSecondsRealtime(0.15f);
+                _spriteRenderer.color = originalColor;
+                yield return new WaitForSecondsRealtime(0.15f);
+            }
+            _spriteRenderer.enabled = false;
+            GameManager.Instance?.OnPlayerDied();
         }
 
         /// <summary>
@@ -357,6 +384,20 @@ namespace HundredSchools.Player
         {
             currentSchool = newSchool;
             ApplySchoolColor();
+            ApplySchoolPassives();
+        }
+
+        /// <summary>从 schools.json 重新加载学派被动参数。</summary>
+        private void ApplySchoolPassives()
+        {
+            var schoolCfg = ConfigLoader.GetSchoolConfig(currentSchool);
+            if (schoolCfg != null)
+            {
+                dodgeCooldown = schoolCfg.dodgeNoCooldown ? 0f : 8f;
+                attackCoeff = schoolCfg.attackCoeff;
+                _staminaRecoveryRate = schoolCfg.staminaRecoveryRate;
+                _killHeal = schoolCfg.killHeal;
+            }
         }
 
         /// <summary>
@@ -365,6 +406,29 @@ namespace HundredSchools.Player
         public void SwitchWeapon(EWeapon newWeapon)
         {
             currentWeapon = newWeapon;
+        }
+
+        // ==================== 升级接口（由 UpgradeManager 调用） ====================
+
+        /// <summary>增加最大生命值并回满差额。</summary>
+        public void AddMaxHp(float amount)
+        {
+            float oldMax = maxHp;
+            maxHp += amount;
+            currentHp += (maxHp - oldMax);
+            EventBus.TriggerPlayerDamaged(currentHp, maxHp);
+        }
+
+        /// <summary>移动速度乘以倍率（1+factor）。</summary>
+        public void MultiplyMoveSpeed(float factor)
+        {
+            moveSpeed *= (1f + factor);
+        }
+
+        /// <summary>体力恢复速率乘以倍率（1+factor）。</summary>
+        public void MultiplyStaminaRecovery(float factor)
+        {
+            _staminaRecoveryRate *= (1f + factor);
         }
     }
 }

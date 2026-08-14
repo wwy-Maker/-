@@ -54,6 +54,9 @@ namespace HundredSchools.UI
             if (hpSlider != null) hpSlider.minValue = 0;
             if (staminaSlider != null) staminaSlider.minValue = 0;
 
+            // ★ 修正血条/体力条锚点，防止飞出屏幕
+            FixSliderAnchors();
+
             if (continuePanel != null) continuePanel.SetActive(false);
             if (continueButton != null) continueButton.onClick.AddListener(OnContinueClicked);
 
@@ -70,8 +73,7 @@ namespace HundredSchools.UI
             EventBus.OnWaveChanged += HandleWaveChanged;
             EventBus.OnEnemyKilled += HandleEnemyKilled;
             EventBus.OnWaveTransition += HandleWaveTransition;
-            EventBus.OnGameWon += HandleGameWon;
-            EventBus.OnGameOver += HandleGameOver;
+            EventBus.OnKnowledgeChanged += HandleKnowledgeChanged;
         }
 
         private void OnDisable()
@@ -82,8 +84,7 @@ namespace HundredSchools.UI
             EventBus.OnWaveChanged -= HandleWaveChanged;
             EventBus.OnEnemyKilled -= HandleEnemyKilled;
             EventBus.OnWaveTransition -= HandleWaveTransition;
-            EventBus.OnGameWon -= HandleGameWon;
-            EventBus.OnGameOver -= HandleGameOver;
+            EventBus.OnKnowledgeChanged -= HandleKnowledgeChanged;
         }
 
         private void Update()
@@ -121,7 +122,12 @@ namespace HundredSchools.UI
 
         private void HandleEnemyKilled(Vector3 position, int knowledgeValue)
         {
-            _totalKnowledge += knowledgeValue;
+            // 学识累积已迁移到 KnowledgeManager，由 OnKnowledgeChanged 更新显示
+        }
+
+        private void HandleKnowledgeChanged(int total)
+        {
+            _totalKnowledge = total;
             UpdateKnowledgeText();
         }
 
@@ -218,7 +224,22 @@ namespace HundredSchools.UI
             if (continuePanel != null)
                 continuePanel.SetActive(false);
 
+            // 通关后直接重开，不弹升级面板
+            if (Core.GameManager.Instance != null && Core.GameManager.Instance.IsGameWin)
+            {
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                return;
+            }
+
+            // 关闭波间等待状态，进入升级阶段（防止 ItemShop 遮挡升级面板）
             if (Core.GameManager.Instance != null)
+                Core.GameManager.Instance.EnterUpgradePhase();
+
+            // 弹出升级面板，由 UpgradePanel 在玩家选择后调用 ContinueToNextWave
+            var upgradePanel = FindObjectOfType<UpgradePanel>(true);
+            if (upgradePanel != null)
+                upgradePanel.ShowPanel();
+            else if (Core.GameManager.Instance != null)
                 Core.GameManager.Instance.ContinueToNextWave();
         }
 
@@ -255,12 +276,45 @@ namespace HundredSchools.UI
 
         // ==================== 公开接口 ====================
 
+        /// <summary>修正血条/体力条的 RectTransform 锚点到左上角。</summary>
+        private void FixSliderAnchors()
+        {
+            if (hpSlider != null)
+            {
+                var rt = hpSlider.GetComponent<RectTransform>();
+                rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
+                rt.pivot = new Vector2(0f, 1f);
+                rt.anchoredPosition = new Vector2(20f, -20f);
+            }
+            if (staminaSlider != null)
+            {
+                var rt = staminaSlider.GetComponent<RectTransform>();
+                rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
+                rt.pivot = new Vector2(0f, 1f);
+                rt.anchoredPosition = new Vector2(20f, -60f);
+            }
+        }
+
         /// <summary>由外部（如 GameManager.Start）调用，设置总波数。</summary>
         public void SetTotalWaves(int total)
         {
             _totalWaves = total;
             if (waveText != null)
                 waveText.text = $"第 0 / {_totalWaves} 波";
+        }
+
+        public void FlashHpBarGreen()
+        {
+            if (hpFillImage != null)
+                StartCoroutine(FlashGreen());
+        }
+
+        private System.Collections.IEnumerator FlashGreen()
+        {
+            Color orig = hpFillImage.color;
+            hpFillImage.color = Color.green;
+            yield return new WaitForSecondsRealtime(0.5f);
+            hpFillImage.color = orig;
         }
     }
 }

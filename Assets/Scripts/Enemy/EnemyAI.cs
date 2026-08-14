@@ -78,7 +78,7 @@ namespace HundredSchools.Enemy
         private void Update()
         {
             if (_playerTransform == null) return;
-            if (_enemy.IsDead) return;
+            if (_enemy.IsDead || _enemy.IsFrozen) return;
 
             // 可配置的更新间隔（降低 AI 计算频率）
             if (updateInterval > 0f)

@@ -19,8 +19,8 @@ namespace HundredSchools.Core
         public static event Action<int> OnWaveChanged;
         public static event Action OnWaveCleared;
         public static event Action OnWaveTransition;     // 波间过渡（显示"继续"按钮）
-        public static event Action OnGameWon;
-        public static event Action OnGameOver;
+        public static event Action<bool> OnGameOver;     // (isVictory)
+        public static event Action OnBossKilled;          // Boss 被击杀
 
         // === 玩家 ===
         public static event Action<float, float> OnPlayerDamaged;     // (currentHp, maxHp)
@@ -36,6 +36,9 @@ namespace HundredSchools.Core
 
         // === 经济 ===
         public static event Action<int> OnKnowledgeChanged;            // (totalKnowledge)
+
+        // === Boss ===
+        public static event Action<int> OnBossPhaseChange;              // (newPhase)
 
         // === 升级 ===
         public static event Action<string, int> OnWeaponUpgraded;      // (weaponId, newLevel)
@@ -54,11 +57,11 @@ namespace HundredSchools.Core
         public static void TriggerWaveTransition() =>
             OnWaveTransition?.Invoke();
 
-        public static void TriggerGameWon() =>
-            OnGameWon?.Invoke();
+        public static void TriggerGameOver(bool isVictory) =>
+            OnGameOver?.Invoke(isVictory);
 
-        public static void TriggerGameOver() =>
-            OnGameOver?.Invoke();
+        public static void TriggerBossKilled() =>
+            OnBossKilled?.Invoke();
 
         public static void TriggerPlayerDamaged(float currentHp, float maxHp) =>
             OnPlayerDamaged?.Invoke(currentHp, maxHp);
@@ -87,6 +90,9 @@ namespace HundredSchools.Core
         public static void TriggerKnowledgeChanged(int total) =>
             OnKnowledgeChanged?.Invoke(total);
 
+        public static void TriggerBossPhaseChange(int phase) =>
+            OnBossPhaseChange?.Invoke(phase);
+
         public static void TriggerWeaponUpgraded(string weaponId, int newLevel) =>
             OnWeaponUpgraded?.Invoke(weaponId, newLevel);
 
@@ -97,8 +103,8 @@ namespace HundredSchools.Core
             OnWaveChanged = null;
             OnWaveCleared = null;
             OnWaveTransition = null;
-            OnGameWon = null;
             OnGameOver = null;
+            OnBossKilled = null;
             OnPlayerDamaged = null;
             OnPlayerHealed = null;
             OnPlayerDied = null;
@@ -108,6 +114,7 @@ namespace HundredSchools.Core
             OnEnemyKilled = null;
             OnScoreChanged = null;
             OnKnowledgeChanged = null;
+            OnBossPhaseChange = null;
             OnWeaponUpgraded = null;
         }
     }

@@ -68,6 +68,14 @@ namespace HundredSchools.Combat
 
         private float _cooldownTimer;
 
+        // ==================== 升级加成（公开字段，由 UpgradeManager 修改） ====================
+
+        /// <summary>伤害倍率（初始1.0，每次升级乘以1.15）</summary>
+        [HideInInspector] public float damageMultiplier = 1f;
+
+        /// <summary>攻速倍率（初始1.0，每次升级乘以1.10，作用于冷却时间）</summary>
+        [HideInInspector] public float attackSpeedMultiplier = 1f;
+
         // ==================== Unity 生命周期 ====================
 
         // ==================== 公开接口 ====================
@@ -83,8 +91,20 @@ namespace HundredSchools.Combat
             if (Input.GetMouseButtonDown(1) && _cooldownTimer <= 0f)
             {
                 PerformFanAttack();
-                _cooldownTimer = cooldown;
+                _cooldownTimer = cooldown / attackSpeedMultiplier;
             }
+        }
+
+        /// <summary>应用 WeaponUpgradeEffect 到本武器组件。</summary>
+        public void ApplyUpgradeEffect(Core.WeaponUpgradeEffect e)
+        {
+            if (e.damage > 0) damage = e.damage;
+            if (e.fanRange > 0) fanRadius = e.fanRange;
+            if (e.barrierDuration > 0) barrierDuration = e.barrierDuration;
+            if (e.reflectDamage > 0) barrierReflectDamage = e.reflectDamage;
+            if (e.thornDamage > 0) barrierReflectDamage = e.thornDamage;
+            damageMultiplier = 1f;
+            attackSpeedMultiplier = 1f;
         }
 
         /// <summary>切换武器时重置冷却</summary>
@@ -133,7 +153,7 @@ namespace HundredSchools.Combat
                 Enemy.EnemyBase enemy = col.GetComponent<Enemy.EnemyBase>();
                 if (enemy != null)
                 {
-                    enemy.TakeDamage(damage);
+                    enemy.TakeDamage(Mathf.RoundToInt(damage * damageMultiplier));
                 }
 
                 hitCount++;

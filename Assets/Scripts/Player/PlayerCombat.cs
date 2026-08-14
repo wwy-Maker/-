@@ -64,7 +64,8 @@ namespace HundredSchools.Player
             // 暂停 / 游戏结束时不处理输入
             if (Core.GameManager.Instance != null)
             {
-                if (Core.GameManager.Instance.IsPaused || Core.GameManager.Instance.IsGameOver)
+                if (Core.GameManager.Instance.IsPaused || Core.GameManager.Instance.IsGameOver
+                    || Core.GameManager.Instance.IsSelectingCharacter)
                     return;
             }
 

@@ -65,6 +65,19 @@ namespace HundredSchools.Combat
         /// <summary>最终伤害 = 基础伤害 × damageMultiplier</summary>
         public int FinalDamage => Mathf.RoundToInt(damage * damageMultiplier);
 
+        /// <summary>标记为敌方弹幕，Boss 阶段切换时用于清理</summary>
+        public bool IsEnemyProjectile;
+
+        /// <summary>全局冻结：true 时所有弹幕停止移动</summary>
+        public static bool GlobalFreeze;
+
+        /// <summary>精英儒系溅射：命中后对周围 2m 造成 50% 伤害</summary>
+        public bool IsSplash;
+        /// <summary>精英法系追踪：弹幕缓慢转向玩家（90°/s）</summary>
+        public bool IsTracking;
+        /// <summary>追踪转向速率（度/秒）</summary>
+        public float trackingTurnRate = 90f;
+
         // ==================== 运行时状态 ====================
 
         protected Vector3 flightDirection = Vector3.right;
@@ -96,7 +109,22 @@ namespace HundredSchools.Combat
 
         protected virtual void Update()
         {
-            transform.position += flightDirection * moveSpeed * Time.deltaTime;
+            // 精英法系追踪：弹幕缓慢转向玩家
+            if (IsTracking)
+            {
+                var player = FindPlayer();
+                if (player != null)
+                {
+                    Vector3 toPlayer = (player.position - transform.position).normalized;
+                    float maxAngle = trackingTurnRate * Mathf.Deg2Rad * Time.deltaTime;
+                    flightDirection = Vector3.RotateTowards(flightDirection, toPlayer, maxAngle, 0f);
+                    float angle = Mathf.Atan2(flightDirection.y, flightDirection.x) * Mathf.Rad2Deg;
+                    transform.rotation = Quaternion.Euler(0f, 0f, angle);
+                }
+            }
+
+            if (!GlobalFreeze)
+                transform.position += flightDirection * moveSpeed * Time.deltaTime;
 
             elapsedTime += Time.deltaTime;
             if (elapsedTime >= maxLifetime)
@@ -284,6 +312,13 @@ namespace HundredSchools.Combat
         {
             Player.PlayerMovement player = playerCol.GetComponent<Player.PlayerMovement>();
             if (player == null) return;
+
+            // 精英儒系溅射：对玩家周围 2m 也造成 50% 伤害
+            if (IsSplash)
+            {
+                player.TakeDamage(FinalDamage);
+            }
+
             switch (behavior)
             {
                 case EBulletBehavior.Splash:

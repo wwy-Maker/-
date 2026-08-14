@@ -24,6 +24,17 @@ namespace HundredSchools
     }
 
     /// <summary>
+    /// 难度等级。
+    /// 影响敌人HP/速度/弹幕频率、玩家初始HP、学识倍率。
+    /// </summary>
+    public enum EDifficulty
+    {
+        Easy,
+        Normal,
+        Hard
+    }
+
+    /// <summary>
     /// 武器 / 技艺流派枚举。
     /// 决定玩家的攻击方式和弹幕形态。
     /// </summary>
